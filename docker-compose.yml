@@ -1,0 +1,12 @@
+followers-api:
+  build:
+    context: ../services/Followers.API
+gateway:
+  build:
+    context: ../gateway
+stakeholders-api:
+  build:
+    context: ../services/Stakeholders.API
+tours-api:
+  build:
+    context: ../services/Tours.API

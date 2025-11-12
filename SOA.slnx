@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/deploy/">
+    <File Path=".env" />
+    <File Path="docker-compose.yml" />
+  </Folder>
+  <Folder Name="/gateway/">
+    <Project Path="gateway/Gateway.csproj" />
+  </Folder>
+  <Folder Name="/services/">
+    <Project Path="services/Followers.API/Followers.API.csproj" />
+    <Project Path="services/Stakeholders.API/Stakeholders.API.csproj" />
+    <Project Path="services/Tours.API/Tours.API.csproj" />
+  </Folder>
+</Solution>
