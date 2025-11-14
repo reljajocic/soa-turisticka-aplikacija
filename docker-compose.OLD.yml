@@ -17,7 +17,7 @@ services:
     container_name: neo4j
     environment:
       NEO4J_AUTH: neo4j/neo4jpass
-    # ports: ["7475:7474", "7688:7687"] #gpt rekao
+    ports: ["7475:7474", "7688:7687"]
     volumes:
       - neo4j_data:/data
 
