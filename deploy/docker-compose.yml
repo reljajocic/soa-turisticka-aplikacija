@@ -29,6 +29,8 @@ services:
       Mongo__Db: StakeholdersDB
       Mongo__UsersCollection: Users
     depends_on: [ mongo ]
+    ports: 
+      - "5101:8080"  # <--- Direktan pristup na localhost:5101
     networks: [ app-net ]
 
   followers-api:
@@ -43,6 +45,8 @@ services:
       Neo4j__User: neo4j
       Neo4j__Pass: ${NEO4J_PASS}
     depends_on: [ neo4j ]
+    ports: 
+      - "5102:8080"  # <--- Direktan pristup na localhost:5102
     networks: [ app-net ]
 
   tours-api:
@@ -56,6 +60,8 @@ services:
       Mongo__Conn: mongodb://${MONGO_USER}:${MONGO_PASS}@mongo:27017
       Mongo__Db: TourDB
     depends_on: [ mongo ]
+    ports: 
+      - "5103:8080"  # <--- Direktan pristup na localhost:5103
     networks: [ app-net ]
 
   gateway:

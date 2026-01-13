@@ -1,17 +1,25 @@
+using Ocelot.DependencyInjection;
+using Ocelot.Middleware;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 
+builder.Services.AddOcelot(builder.Configuration.GetSection("Ocelot"));
+
 var app = builder.Build();
 
 app.UseSwagger();
-app.UseSwaggerUI();                       // <- UI
-app.MapControllers();
-app.MapGet("/", () => "Gateway up");     // <- health
+app.UseSwaggerUI();
 
-// ako /swagger (bez index.html) i dalje daje 404, dodaj ovaj redirect:
+app.MapControllers();
+app.MapGet("/", () => "Gateway up");
 app.MapGet("/swagger", () => Results.Redirect("/swagger/index.html"));
+
+await app.UseOcelot();
 
 app.Run();

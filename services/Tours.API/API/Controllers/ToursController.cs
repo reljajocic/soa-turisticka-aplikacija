@@ -27,4 +27,10 @@ public class ToursController : ControllerBase
         var ok = await _svc.AddKeypointAsync(id, dto);
         return ok ? NoContent() : NotFound();
     }
+
+    [HttpGet]
+    public IActionResult GetAll()
+    {
+        return Ok(new string[] { "Tura 1", "Tura 2", "Gateway radi!" });
+    }
 }
