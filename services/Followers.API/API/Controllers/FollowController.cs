@@ -3,6 +3,7 @@ using Followers.API.Application.Interfaces;
 using Followers.API.Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Followers.API.API.Controllers;
 
@@ -17,8 +18,8 @@ public class FollowController : ControllerBase
     [HttpPost("{followedId:guid}")]
     public async Task<IActionResult> Follow([FromRoute] Guid followedId, CancellationToken ct)
     {
-        var sub = User.FindFirstValue("sub");
-        if (string.IsNullOrWhiteSpace(sub)) return Unauthorized();
+        var sub = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (sub is null) return Unauthorized();
 
         var res = await _service.FollowAsync(new FollowCommand(Guid.Parse(sub), followedId), ct);
         return res.Success ? Ok() : BadRequest();
@@ -27,8 +28,8 @@ public class FollowController : ControllerBase
     [HttpDelete("{followedId:guid}")]
     public async Task<IActionResult> Unfollow([FromRoute] Guid followedId, CancellationToken ct)
     {
-        var sub = User.FindFirstValue("sub");
-        if (string.IsNullOrWhiteSpace(sub)) return Unauthorized();
+        var sub = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (sub is null) return Unauthorized();
 
         var res = await _service.UnfollowAsync(new FollowCommand(Guid.Parse(sub), followedId), ct);
         return res.Success ? NoContent() : BadRequest();
@@ -37,8 +38,8 @@ public class FollowController : ControllerBase
     [HttpGet("is-following")]
     public async Task<IActionResult> IsFollowing([FromQuery] Guid authorId, CancellationToken ct)
     {
-        var sub = User.FindFirstValue("sub");
-        if (string.IsNullOrWhiteSpace(sub)) return Unauthorized();
+        var sub = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (sub is null) return Unauthorized();
 
         var res = await _service.IsFollowingAsync(new FollowCheck(Guid.Parse(sub), authorId), ct);
         return Ok(res);

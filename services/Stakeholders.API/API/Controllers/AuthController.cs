@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Stakeholders.API.Application.Interfaces;
+using System.Security.Claims;
 
 namespace Stakeholders.API.API.Controllers;
 

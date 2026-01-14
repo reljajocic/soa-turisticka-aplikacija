@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Tours.API.Application.Interfaces;
 using Tours.API.Domain.Dtos;
+using System.Security.Claims;
 
 namespace Tours.API.API.Controllers;
 
@@ -16,7 +17,8 @@ public class ExecutionController : ControllerBase
     [HttpPost("start")]
     public async Task<IActionResult> Start(StartExecDto dto)
     {
-        var sub = User.FindFirst("sub")?.Value; if (sub is null) return Unauthorized();
+        var sub = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (sub is null) return Unauthorized();
         var id = await _svc.StartAsync(Guid.Parse(sub), dto);
         return Ok(new { id });
     }
@@ -24,7 +26,8 @@ public class ExecutionController : ControllerBase
     [HttpPost("poll")]
     public async Task<IActionResult> Poll(PollDto dto)
     {
-        var sub = User.FindFirst("sub")?.Value; if (sub is null) return Unauthorized();
+        var sub = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (sub is null) return Unauthorized();
         var res = await _svc.PollAsync(Guid.Parse(sub), dto);
         return Ok(res);
     }
@@ -32,7 +35,8 @@ public class ExecutionController : ControllerBase
     [HttpPost("finish")]
     public async Task<IActionResult> Finish(FinishDto dto)
     {
-        var sub = User.FindFirst("sub")?.Value; if (sub is null) return Unauthorized();
+        var sub = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (sub is null) return Unauthorized();
         await _svc.FinishAsync(Guid.Parse(sub), dto);
         return NoContent();
     }
