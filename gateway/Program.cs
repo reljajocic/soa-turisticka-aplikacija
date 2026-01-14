@@ -9,12 +9,25 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy", b =>
+    {
+        b.WithOrigins("http://localhost:5173")
+         .AllowAnyMethod()
+         .AllowAnyHeader()
+         .AllowCredentials();
+    });
+});
+
 builder.Services.AddOcelot(builder.Configuration.GetSection("Ocelot"));
 
 var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
+
+app.UseCors("CorsPolicy");
 
 app.MapControllers();
 app.MapGet("/", () => "Gateway up");
