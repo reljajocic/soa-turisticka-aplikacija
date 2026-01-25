@@ -14,8 +14,12 @@ public class PositionService : IPositionService
     public async Task SetAsync(Guid userId, SetPosDto dto)
     {
         var filter = Builders<UserPosition>.Filter.Eq(x => x.UserId, userId);
+
         var update = Builders<UserPosition>.Update
-          .Set(x => x.Lat, dto.Lat).Set(x => x.Lon, dto.Lon).Set(x => x.UpdatedAt, DateTime.UtcNow);
+          .Set(x => x.Lat, dto.Latitude)
+          .Set(x => x.Lon, dto.Longitude)
+          .Set(x => x.UpdatedAt, DateTime.UtcNow);
+
         await _ctx.Positions.UpdateOneAsync(filter, update, new UpdateOptions { IsUpsert = true });
     }
 

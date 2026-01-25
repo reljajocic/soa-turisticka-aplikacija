@@ -13,7 +13,16 @@ public class CartService : ICartService
 
     public async Task<Guid> AddItemAsync(Guid userId, AddCartDto dto)
     {
-        var i = new CartItem { Id = Guid.NewGuid(), UserId = userId, TourId = dto.TourId, Name = dto.Name, Price = dto.Price };
+        var i = new CartItem
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            TourId = dto.TourId,
+            Name = dto.Name,
+            // FIX: Dodato (decimal) jer je dto.Price double
+            Price = (decimal)dto.Price
+        };
+
         await _ctx.Cart.InsertOneAsync(i);
         return i.Id;
     }
