@@ -8,4 +8,5 @@ public interface ICartService
     Task<ShoppingCart> GetCartAsync(Guid userId);
     Task AddToCartAsync(Guid userId, AddCartDto item);
     Task<List<TourPurchaseToken>> CheckoutAsync(Guid userId);
+    Task RemoveFromCartAsync(Guid userId, Guid tourId);
 }

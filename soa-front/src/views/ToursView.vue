@@ -25,7 +25,7 @@
                   <i class="fa fa-info-circle btn-icon" aria-hidden="true"></i> 
                 </button>
 
-                <button @click="addToCart(tour)" class="btn btn-details" title="Add to Cart">
+                <button v-if="authStore.isTourist()" @click="addToCart(tour)" class="btn btn-details" title="Add to Cart">
                    <i class="fa fa-shopping-cart" aria-hidden="true"></i>
                 </button>
             </div>
@@ -44,9 +44,11 @@
 import { onMounted, ref } from 'vue'
 import { useTourStore } from '@/stores/tours'
 import { useCartStore } from '@/stores/cart'
+import { useAuthStore } from '@/stores/auth' // <--- IMPORT AUTH STORE
 
 const tourStore = useTourStore()
 const cartStore = useCartStore()
+const authStore = useAuthStore() // <--- INIT AUTH STORE
 const tours = ref([])
 const loading = ref(true)
 
@@ -77,15 +79,11 @@ const truncateText = (text, length) => {
 .tour-card:hover { box-shadow: 0 4px 15px rgba(0,0,0,0.25); transition-duration: 0.5s ;}
 
 .card-header { height: 100px; position: relative; background: #ddd; }
-.diff-1 { background: #cc072a; } 
-.diff-2 { background: #b00626; } 
-.diff-3 { background: #99051f; } 
-.diff-4 { background: #7a0419; } 
-.diff-5 { background: #4d020f; } 
+.diff-1 { background: #cc072a; } .diff-2 { background: #b00626; } .diff-3 { background: #99051f; } .diff-4 { background: #7a0419; } .diff-5 { background: #4d020f; } 
 
 .difficulty-badge { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
 .card-body { padding: 20px; display: flex; flex-direction: column; flex-grow: 1; }
-.card-body h3 { font-size: 1.2rem; }
+.card-body h3 { font-size: 1.2rem; margin-top: 0; }
 .tags { font-size: 0.8rem; color: #cc072a; margin-bottom: 5px; }
 .tag { margin-right: 5px; }
 .description { color: #666; font-size: 0.8rem; margin-bottom: 15px; min-height: 40px; flex-grow: 1; }
@@ -95,23 +93,11 @@ const truncateText = (text, length) => {
 
 .buttons { display: flex; gap: 8px; }
 
-.btn { display: flex; align-items: center; gap: 5px; justify-content: center; font-family: inherit; }
-
 .btn-details { 
     background: #cc072a; 
-    color: white;
+    color: white; border: none;
     padding: 8px 12px; border-radius: 6px; cursor: pointer; transition: 0.2s; font-weight: 500;
 }
 .btn-details:hover { background: #99051f; color: white; transform: scale(1.05);}
-
-.btn-cart { 
-    background: #ff9800; color: white; border: none; 
-    padding: 8px 12px; border-radius: 6px; cursor: pointer; transition: 0.2s; 
-    font-size: 1.1rem; /* Malo veća ikonica za korpu */
-}
-.btn-cart:hover { background: #e65100; transform: scale(1.05); }
-
-.btn-icon{
-    color: white;
-}
+.btn-icon{ color: white; }
 </style>

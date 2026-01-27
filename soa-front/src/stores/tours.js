@@ -38,7 +38,7 @@ export const useTourStore = defineStore('tours', {
       }
     },
 
-    // 4. Dobavljanje MOJIH tura (za My Tours) - OVO JE FALILO
+    // 4. Dobavljanje MOJIH tura (za My Tours - AUTOR)
     async getToursByAuthor(authorId) {
       try {
         const response = await api.get(`/tours/author/${authorId}`)
@@ -48,8 +48,19 @@ export const useTourStore = defineStore('tours', {
         throw error.response?.data || error.message
       }
     },
+    
+    // 5. Dobavljanje KUPLJENIH tura (za My Tours - TURISTA) - NOVO
+    async getPurchasedTours() {
+      try {
+        const response = await api.get('/tours/purchased')
+        // Možemo koristiti ovo za prikaz
+        return response.data
+      } catch (error) {
+        throw error.response?.data || error.message
+      }
+    },
 
-    // 5. Promena statusa (Draft/Publish/Archive) - I OVO ĆE TI TREBATI
+    // 6. Promena statusa (Draft/Publish/Archive)
     async updateStatus(tourId, status) {
         try {
           await api.post(`/tours/${tourId}/status?status=${status}`)
@@ -58,7 +69,7 @@ export const useTourStore = defineStore('tours', {
         }
     },
 
-    // 6. Dohvati jednu turu (sa tačkama)
+    // 7. Dohvati jednu turu (sa tačkama)
     async getTour(id) {
       try {
         const response = await api.get(`/tours/${id}`)

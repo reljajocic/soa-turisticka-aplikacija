@@ -48,4 +48,14 @@ public class CartController : ControllerBase
         var tokens = await _svc.CheckoutAsync(Guid.Parse(sub));
         return Ok(tokens);
     }
+
+    [HttpDelete("{tourId}")]
+    public async Task<IActionResult> Remove(Guid tourId)
+    {
+        var sub = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (sub is null) return Unauthorized();
+
+        await _svc.RemoveFromCartAsync(Guid.Parse(sub), tourId);
+        return NoContent(); // 204 No Content je standard za uspešno brisanje
+    }
 }

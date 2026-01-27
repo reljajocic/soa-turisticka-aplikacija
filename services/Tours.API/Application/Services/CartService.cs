@@ -72,4 +72,12 @@ public class CartService : ICartService
 
         return tokens;
     }
+
+    public async Task RemoveFromCartAsync(Guid userId, Guid tourId)
+    {
+        // MongoDB magija: "Izbaci iz niza Items onaj element čiji je TourId == tourId"
+        var update = Builders<ShoppingCart>.Update.PullFilter(x => x.Items, i => i.TourId == tourId);
+
+        await _ctx.Carts.UpdateOneAsync(x => x.UserId == userId, update);
+    }
 }

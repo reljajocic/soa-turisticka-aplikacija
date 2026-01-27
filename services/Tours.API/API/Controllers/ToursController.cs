@@ -87,4 +87,14 @@ public class ToursController : ControllerBase
         if (tour is null) return NotFound();
         return Ok(tour);
     }
+
+    [HttpGet("purchased")]
+    public async Task<IActionResult> GetPurchased()
+    {
+        var sub = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (sub is null) return Unauthorized();
+
+        var tours = await _svc.GetPurchasedToursAsync(Guid.Parse(sub));
+        return Ok(tours);
+    }
 }

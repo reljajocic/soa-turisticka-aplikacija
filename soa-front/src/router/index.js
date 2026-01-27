@@ -8,6 +8,8 @@ import ToursView from '../views/ToursView.vue'
 import MyToursView from '../views/MyToursView.vue'
 import CartView from '@/views/CartView.vue'
 import TourDetailsView from '../views/TourDetailsView.vue'
+import SimulatorView from '../views/SimulatorView.vue'
+import ActiveTourView from '../views/ActiveTourView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -21,6 +23,8 @@ const router = createRouter({
     { path: '/my-tours', name: 'my-tours', component: MyToursView, meta: { requiresAuth: true }},
     { path: '/cart', name: 'cart', component: CartView },
     { path: '/tour/:id', name: 'tour-details', component: TourDetailsView}, 
+    { path: '/simulator', name: 'simulator', component: SimulatorView},
+    { path: '/execution/:id', name: 'active-tour', component: ActiveTourView},
   ]
 })
 

@@ -19,12 +19,17 @@
     <div v-else class="cart-container card">
       
       <div class="cart-items-list">
-        <div v-for="item in cartStore.items" :key="item.id" class="cart-item">
+        <div v-for="item in cartStore.items" :key="item.tourId" class="cart-item">
           <div class="item-info">
              <span class="item-name">{{ item.name }}</span>
           </div>
-          <div class="item-price">
-            ${{ item.price.toFixed(2) }}
+          
+          <div class="item-actions">
+              <span class="item-price">${{ item.price.toFixed(2) }}</span>
+              
+              <button @click="removeItem(item.tourId)" class="btn-remove" title="Remove">
+                  <i class="fa fa-trash"></i>
+              </button>
           </div>
         </div>
       </div>
@@ -59,13 +64,21 @@ onMounted(async () => {
     loading.value = false
 })
 
+// 👇 NOVA FUNKCIJA
+const removeItem = async (tourId) => {
+    if(!confirm("Remove this tour from cart?")) return
+    try {
+        await cartStore.removeFromCart(tourId) // Moraš imati ovo u store-u!
+    } catch (e) {
+        alert("Failed to remove item.")
+    }
+}
+
 const handleCheckout = async () => {
     if(!confirm("Are you sure you want to complete the purchase?")) return
     try {
         await cartStore.checkout()
-        // Uspešna kupovina - redirekcija ili poruka
         alert("Purchase successful! Get ready for your adventure!")
-        // Ovde ćemo kasnije verovatno ruterom prebaciti na neku "Thank You" stranicu ili listu kupljenih tura
     } catch (e) {
         alert("Checkout failed: " + (e.response?.data?.message || e.message))
     }
@@ -76,30 +89,22 @@ const handleCheckout = async () => {
 .page-title { text-align: center; margin: 30px 0; color: #2c3e50; font-size: 2rem; }
 .loading-state { text-align: center; font-size: 1.2rem; color: #666; margin-top: 50px; }
 
-/* OPŠTI CARD STIL (Da liči na ostale) */
 .card {
     background: white;
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.05);
     border: none;
-    overflow: hidden; /* Da summary ne viri */
+    overflow: hidden;
     max-width: 800px;
-    margin: 0 auto; /* Centriranje kartice */
+    margin: 0 auto;
 }
 
-/* PRAZNA KORPA */
-.empty-cart {
-    padding: 50px 20px;
-    text-align: center;
-}
+.empty-cart { padding: 50px 20px; text-align: center; }
 .empty-icon { font-size: 4rem; color: #ddd; margin-bottom: 20px; }
 .empty-cart h3 { color: #2c3e50; margin-bottom: 10px; }
 .empty-cart p { color: #777; margin-bottom: 30px; }
 
-/* KORPA SA STAVKAMA */
-.cart-items-list {
-    padding: 20px 30px;
-}
+.cart-items-list { padding: 20px 30px; }
 
 .cart-item {
     display: flex;
@@ -111,11 +116,37 @@ const handleCheckout = async () => {
 .cart-item:last-child { border-bottom: none; }
 
 .item-name { font-weight: 600; font-size: 1.1rem; color: #2c3e50; }
+
+/* 👇 NOVI STILOVI ZA DESNU STRANU (Cena + Kanta) */
+.item-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
 .item-price { font-weight: 700; font-size: 1.1rem; color: #2c3e50; }
 
-/* SUMMARY SEKCIJA NA DNU */
+/* Dugme za kantu */
+.btn-remove {
+    background: #fee2e2;
+    color: #ef4444;
+    border: none;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+}
+.btn-remove:hover {
+    background: #fecaca;
+    transform: scale(1.1);
+}
+
 .cart-summary {
-    background: #f9f9f9; /* Malo tamnija pozadina za dno */
+    background: #f9f9f9;
     padding: 30px;
     border-top: 1px solid #eee;
 }
@@ -128,11 +159,10 @@ const handleCheckout = async () => {
 }
 
 .total-row { font-size: 1.3rem; font-weight: bold; color: #2c3e50; }
-.total-amount { color: #cc072a; /* Narandžasta za total */ font-size: 1.5rem; }
+.total-amount { color: #cc072a; font-size: 1.5rem; }
 
 .checkout-note { text-align: center; font-size: 0.85rem; color: #888; margin-top: 15px; }
 
-/* DUGMIĆI */
 .btn {
     padding: 10px 20px;
     border-radius: 8px;
@@ -148,15 +178,15 @@ const handleCheckout = async () => {
 
 .btn-outline-primary {
     background: white;
-    border: 2px solid #007bff;
-    color: #007bff;
+    border: 2px solid #cc072a;
+    color: #cc072a;
 }
-.btn-outline-primary:hover { background: #007bff; color: white; }
+.btn-outline-primary:hover { background: #cc072a; color: white; }
 
 .btn-checkout-lg {
     width: 100%;
     padding: 15px;
-    background: #cc072a; /* Glavna narandžasta boja teme */
+    background: #cc072a;
     color: white;
     font-size: 1.2rem;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);

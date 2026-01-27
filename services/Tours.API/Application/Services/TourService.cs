@@ -122,4 +122,20 @@ public class TourService : ITourService
             Keypoints = t.Keypoints // Vraćamo tačke!
         };
     }
+
+    public async Task<IEnumerable<TourDto>> GetPurchasedToursAsync(Guid userId)
+    {
+        // 1. Nađi sve tokene za ovog korisnika
+        var tokens = await _ctx.Tokens.Find(t => t.UserId == userId).ToListAsync();
+
+        if (tokens.Count == 0) return new List<TourDto>();
+
+        // 2. Izdvoj ID-jeve tura
+        var tourIds = tokens.Select(t => t.TourId).ToList();
+
+        // 3. Nađi te ture u bazi
+        var tours = await _ctx.Tours.Find(t => tourIds.Contains(t.Id)).ToListAsync();
+
+        return MapToDto(tours);
+    }
 }
