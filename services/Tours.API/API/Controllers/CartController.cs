@@ -14,13 +14,17 @@ public class CartController : ControllerBase
     private readonly ICartService _svc;
     public CartController(ICartService svc) => _svc = svc;
 
-    [HttpPost("items")]
-    public async Task<IActionResult> Add(AddCartDto dto)
+    // ISPRAVLJENO: Nema više ("items"), sada je čist HttpPost -> /api/cart
+    [HttpPost]
+    public async Task<IActionResult> AddToCart(AddCartDto dto)
     {
         var sub = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (sub is null) return Unauthorized();
-        var id = await _svc.AddItemAsync(Guid.Parse(sub), dto);
-        return Ok(new { id });
+
+        // ISPRAVLJENO: Pozivamo AddToCartAsync (kako se zove u servisu)
+        await _svc.AddToCartAsync(Guid.Parse(sub), dto);
+
+        return Ok();
     }
 
     [HttpGet]
@@ -28,8 +32,11 @@ public class CartController : ControllerBase
     {
         var sub = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (sub is null) return Unauthorized();
-        var (items, total) = await _svc.GetAsync(Guid.Parse(sub));
-        return Ok(new { items, total });
+
+        var cart = await _svc.GetCartAsync(Guid.Parse(sub));
+
+        // Vraćamo format koji frontend očekuje
+        return Ok(new { items = cart.Items, total = cart.CalculateTotal() });
     }
 
     [HttpPost("checkout")]
@@ -37,6 +44,7 @@ public class CartController : ControllerBase
     {
         var sub = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (sub is null) return Unauthorized();
+
         var tokens = await _svc.CheckoutAsync(Guid.Parse(sub));
         return Ok(tokens);
     }

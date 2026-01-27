@@ -78,4 +78,13 @@ public class ToursController : ControllerBase
 
         return Ok();
     }
+
+    [HttpGet("{id:guid}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> Get(Guid id)
+    {
+        var tour = await _svc.GetAsync(id);
+        if (tour is null) return NotFound();
+        return Ok(tour);
+    }
 }

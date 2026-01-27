@@ -1,4 +1,5 @@
 ﻿using Tours.API.Domain.Enums;
+using Tours.API.Domain.Models;
 
 namespace Tours.API.Domain.Dtos;
 
@@ -14,7 +15,9 @@ public class TourDto
     public string Description { get; set; }
     public int Difficulty { get; set; }
     public List<string> Tags { get; set; }
-    public TourStatus Status { get; set; } 
+    public TourStatus Status { get; set; }
     public double Price { get; set; }
     public Guid AuthorId { get; set; }
+
+    public List<Keypoint> Keypoints { get; set; }
 }

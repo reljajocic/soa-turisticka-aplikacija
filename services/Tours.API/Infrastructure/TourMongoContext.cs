@@ -7,7 +7,8 @@ public class TourMongoContext
 {
     public IMongoCollection<Tour> Tours { get; }
     public IMongoCollection<UserPosition> Positions { get; }
-    public IMongoCollection<CartItem> Cart { get; }
+    public IMongoCollection<ShoppingCart> Carts { get; }
+    public IMongoCollection<TourPurchaseToken> Tokens { get; }
     public IMongoCollection<PurchaseToken> Purchases { get; }
     public IMongoCollection<TourExecution> Executions { get; }
 
@@ -15,11 +16,12 @@ public class TourMongoContext
     {
         var client = new MongoClient(cfg["Mongo:Conn"]);
         var db = client.GetDatabase(cfg["Mongo:Db"]);
-        Tours = db.GetCollection<Tour>("Tours");
-        Positions = db.GetCollection<UserPosition>("Positions");
-        Cart = db.GetCollection<CartItem>("Cart");
-        Purchases = db.GetCollection<PurchaseToken>("Purchases");
-        Executions = db.GetCollection<TourExecution>("Executions");
+        Tours = db.GetCollection<Tour>("tours");
+        Carts = db.GetCollection<ShoppingCart>("carts");
+        Tokens = db.GetCollection<TourPurchaseToken>("tokens");
+
+        Positions = db.GetCollection<UserPosition>("positions");
+        Executions = db.GetCollection<TourExecution>("executions");
     }
 }
 

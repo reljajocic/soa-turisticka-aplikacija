@@ -56,6 +56,17 @@ export const useTourStore = defineStore('tours', {
         } catch (error) {
           throw error.response?.data || error.message
         }
+    },
+
+    // 6. Dohvati jednu turu (sa tačkama)
+    async getTour(id) {
+      try {
+        const response = await api.get(`/tours/${id}`)
+        this.currentTour = response.data
+        return response.data
+      } catch (error) {
+        throw error.response?.data || error.message
+      }
     }
   }
 })

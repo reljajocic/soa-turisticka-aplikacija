@@ -159,16 +159,16 @@ const getStatusClass = (s) => {
 /* Actions Buttons */
 .actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .btn-sm { padding: 6px 12px; border: none; cursor: pointer; border-radius: 4px; font-size: 0.85rem; color: white; transition: opacity 0.2s, transform 0.1s; font-weight: 500; }
-.btn-sm:hover { opacity: 0.9; transform: translateY(-1px); }
+.btn-sm:hover { opacity: 0.8;}
 .btn-sm:active { transform: translateY(0); }
 
 .btn-publish { background-color: #28a745; }
 .btn-archive { background-color: #ffc107; color: #333; }
-.btn-delete { background-color: #dc3545; }
+.btn-delete { background-color: black; }
 
 /* Primary Button */
-.btn-primary { background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 1rem; }
-.btn-primary:hover { background-color: #0056b3; }
+.btn-primary { background-color: #cc072a; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 1rem; }
+.btn-primary:hover { background-color: #99051f; }
 
 /* Responsive table scrolling */
 .card { overflow-x: auto; }

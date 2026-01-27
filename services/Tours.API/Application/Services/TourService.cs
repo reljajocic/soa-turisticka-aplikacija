@@ -99,7 +99,27 @@ public class TourService : ITourService
             Tags = t.Tags,
             Status = t.Status,
             Price = (double)t.Price,
-            AuthorId = t.AuthorId
+            AuthorId = t.AuthorId,
+            Keypoints = t.Keypoints 
         });
+    }
+
+    public async Task<TourDto?> GetAsync(Guid id)
+    {
+        var t = await _ctx.Tours.Find(x => x.Id == id).FirstOrDefaultAsync();
+        if (t == null) return null;
+
+        return new TourDto
+        {
+            Id = t.Id,
+            Name = t.Name,
+            Description = t.Description ?? "",
+            Difficulty = t.Difficulty,
+            Tags = t.Tags,
+            Status = t.Status,
+            Price = (double)t.Price,
+            AuthorId = t.AuthorId,
+            Keypoints = t.Keypoints // Vraćamo tačke!
+        };
     }
 }
