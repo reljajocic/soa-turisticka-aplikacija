@@ -26,5 +26,3 @@ public class TourMongoContext
         Executions = db.GetCollection<TourExecution>("executions");
     }
 }
-// ❌ OVDE NE SME BITI "public static class Geo..." 
-// (Jer je sada u Geo.cs)

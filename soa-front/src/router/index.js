@@ -10,6 +10,9 @@ import CartView from '@/views/CartView.vue'
 import TourDetailsView from '../views/TourDetailsView.vue'
 import SimulatorView from '../views/SimulatorView.vue'
 import ActiveTourView from '../views/ActiveTourView.vue'
+import BlogsView from '../views/BlogsView.vue'
+import CreateBlogView from '../views/CreateBlogView.vue'
+import BlogDetailsView from '../views/BlogDetailsView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -25,6 +28,9 @@ const router = createRouter({
     { path: '/tour/:id', name: 'tour-details', component: TourDetailsView}, 
     { path: '/simulator', name: 'simulator', component: SimulatorView},
     { path: '/execution/:id', name: 'active-tour', component: ActiveTourView},
+    { path: '/blogs', name: 'blogs', component: BlogsView },
+    { path: '/blog/:id', name: 'blog-details', component: BlogDetailsView },
+    { path: '/create-blog', name: 'create-blog', component: CreateBlogView },
   ]
 })
 

@@ -16,6 +16,7 @@ builder.Services.AddControllers();
 builder.Services.AddSingleton<MongoContext>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<IBlogService, BlogService>();
 
 // JWT
 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(cfg["Jwt:Secret"]!));

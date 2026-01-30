@@ -4,7 +4,7 @@
     <div v-if="loading" class="text-center">Loading tours...</div>
     
     <div v-else class="tours-grid">
-      <div v-for="tour in tours" :key="tour.id" class="tour-card">
+      <div v-for="tour in tours" :key="tour.id" class="tour-card" @click="$router.push(`/tour/${tour.id}`)">
         
         <div class="card-header" :class="'diff-' + tour.difficulty">
           <span class="difficulty-badge">Level {{ tour.difficulty }}</span>
@@ -21,9 +21,9 @@
             <span class="price">{{ tour.price }} $</span>
             
             <div class="buttons">
-                <button @click="$router.push(`/tour/${tour.id}`)" class="btn btn-details" title="View Details">
+                <!-- <button @click="$router.push(`/tour/${tour.id}`)" class="btn btn-details" title="View Details">
                   <i class="fa fa-info-circle btn-icon" aria-hidden="true"></i> 
-                </button>
+                </button>-->
 
                 <button v-if="authStore.isTourist()" @click="addToCart(tour)" class="btn btn-details" title="Add to Cart">
                    <i class="fa fa-shopping-cart" aria-hidden="true"></i>
@@ -75,7 +75,7 @@ const truncateText = (text, length) => {
 <style scoped>
 .page-title { text-align: center; margin: 30px 0; color: #000000; }
 .tours-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
-.tour-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.2s; display: flex; flex-direction: column; }
+.tour-card { background: white; cursor: pointer; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.2s; display: flex; flex-direction: column; }
 .tour-card:hover { box-shadow: 0 4px 15px rgba(0,0,0,0.25); transition-duration: 0.5s ;}
 
 .card-header { height: 100px; position: relative; background: #ddd; }

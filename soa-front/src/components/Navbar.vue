@@ -11,6 +11,7 @@
         
         <template v-if="authStore.isAuthenticated">
           <router-link to="/tours">Tours</router-link>
+          <router-link to="/blogs">Blogs</router-link>
           <router-link v-if="authStore.isGuide()" to="/my-tours">My Tours</router-link>
           <router-link v-if="authStore.isTourist()" to="/my-tours">Purchased</router-link>
         </template>
