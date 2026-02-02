@@ -8,30 +8,43 @@ export const useExecutionStore = defineStore('execution', {
   }),
 
   actions: {
+    // Pokretanje ture
     async startTour(tourId) {
-      // Backend očekuje StartExecDto: { TourId }
-      const res = await api.post('/execution/start', { tourId })
-      this.activeSessionId = res.data.id
-      return res.data.id
+      try {
+        const res = await api.post('/execution/start', { tourId })
+        this.activeSessionId = res.data.id
+        return res.data.id
+      } catch (error) {
+        throw error.response?.data || error.message
+      }
     },
 
+    // Periodično proveravanje pozicije (Tačka 17)
     async pollPosition(executionId) {
-      // Backend očekuje PollDto: { ExecutionId }
-      const res = await api.post('/execution/poll', { executionId })
-      return res.data // { reached, progress, distanceKm, ... }
+      try {
+        // Šaljemo PollDto: { ExecutionId: "..." }
+        const res = await api.post('/execution/poll', { executionId })
+        return res.data 
+      } catch (error) {
+        console.error("Store polling error:", error)
+        throw error
+      }
     },
 
+    // Završavanje ture (Success/Abandoned)
     async finishTour(executionId, success) {
-      // Backend očekuje FinishDto: { ExecutionId, Success }
-      await api.post('/execution/finish', { executionId, success })
-      this.activeSessionId = null
+      try {
+        await api.post('/execution/finish', { executionId, success })
+        this.activeSessionId = null
+      } catch (error) {
+        console.error("Store finish error:", error)
+      }
     },
 
+    // Pomoćna funkcija za proveru kupljenih tura
     async getPurchasedTours() {
       try {
         const response = await api.get('/tours/purchased')
-        // Nećemo pregaziti this.tours jer možda želimo da ih držimo odvojeno, 
-        // ali za MyToursView možemo koristiti lokalnu varijablu.
         return response.data
       } catch (error) {
         throw error.response?.data || error.message

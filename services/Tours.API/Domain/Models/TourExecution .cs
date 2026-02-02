@@ -18,6 +18,7 @@ public class TourExecution
     public DateTime StartedAt { get; set; }
     public string Status { get; set; } = "Active";
     public int ProgressIndex { get; set; }
+    public List<DateTime> KeypointArrivalTimes { get; set; } = new();
     public DateTime LastActivity { get; set; }
     public DateTime? FinishedAt { get; set; }
 }
