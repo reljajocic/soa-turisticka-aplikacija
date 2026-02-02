@@ -68,22 +68,16 @@ public class BlogService : IBlogService
 
     public async Task UpdateAuthorAvatarAsync(Guid userId, string newAvatarUrl)
     {
-        // 1. Ažuriraj sve BLOGOVE gde je on autor
         var updateBlog = Builders<Blog>.Update.Set(b => b.AuthorAvatarUrl, newAvatarUrl);
         await _ctx.Blogs.UpdateManyAsync(b => b.AuthorId == userId, updateBlog);
 
-        // 2. Ažuriraj sve KOMENTARE gde je on autor (Ovo je malo teže u Mongo-u jer su ugnježdeni)
-        //    Koristimo "arrayFilters" da nađemo tačne komentare
         var filter = Builders<Blog>.Filter.ElemMatch(b => b.Comments, c => c.UserId == userId);
         var updateComment = Builders<Blog>.Update.Set("Comments.$[elem].AuthorAvatarUrl", newAvatarUrl);
         var arrayFilters = new List<ArrayFilterDefinition>
     {
-        new BsonDocumentArrayFilterDefinition<BsonDocument>(new BsonDocument("elem.UserId", userId.ToString())) // Pazi na tip UserId-a!
-        // U Mongo drajveru Guid se nekad čuva kao BinData. Ako ovo ne radi, javi pa ćemo uprostiti.
+        new BsonDocumentArrayFilterDefinition<BsonDocument>(new BsonDocument("elem.UserId", userId.ToString())) 
     };
 
-        // Pojednostavljena verzija za komentare (ako arrayFilters zeza):
-        // Učitaj sve blogove gde je komentarisao i ručno promeni (manje efikasno, ali sigurnije za sad)
         var blogsWithComments = await _ctx.Blogs.Find(b => b.Comments.Any(c => c.UserId == userId)).ToListAsync();
         foreach (var blog in blogsWithComments)
         {

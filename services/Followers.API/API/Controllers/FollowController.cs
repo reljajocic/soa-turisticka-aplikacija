@@ -3,12 +3,11 @@ using Followers.API.Application.Interfaces;
 using Followers.API.Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace Followers.API.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/follow")] 
 [Authorize]
 public class FollowController : ControllerBase
 {

@@ -26,16 +26,23 @@ public class BlogController : ControllerBase
     {
         var userId = Guid.Parse(User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
 
-        var username = User.FindFirst("username")?.Value
-                       ?? User.FindFirst("preferred_username")?.Value
+        var username = User.FindFirst("preferred_username")?.Value
+                       ?? User.FindFirst("unique_name")?.Value
                        ?? "Unknown User";
 
-        // Dohvatamo sliku profila
         string avatarUrl = "";
+
         try
         {
             var profile = await _profileService.GetMeAsync(userId);
-            if (profile != null) avatarUrl = profile.AvatarUrl;
+            if (profile != null)
+            {
+                avatarUrl = profile.AvatarUrl;
+                if (!string.IsNullOrEmpty(profile.Username))
+                {
+                    username = profile.Username;
+                }
+            }
         }
         catch { }
 
@@ -76,13 +83,22 @@ public class BlogController : ControllerBase
 
         var username = User.FindFirst("username")?.Value
                        ?? User.FindFirst("preferred_username")?.Value
+                       ?? User.FindFirst(ClaimTypes.Name)?.Value
                        ?? "Unknown User";
 
         string avatarUrl = "";
+
         try
         {
             var profile = await _profileService.GetMeAsync(userId);
-            if (profile != null) avatarUrl = profile.AvatarUrl;
+            if (profile != null)
+            {
+                avatarUrl = profile.AvatarUrl;
+                if (!string.IsNullOrEmpty(profile.Username))
+                {
+                    username = profile.Username;
+                }
+            }
         }
         catch { }
 

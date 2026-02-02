@@ -35,7 +35,7 @@ public class CommentDto
     public Guid Id { get; set; }
     public Guid UserId { get; set; }
     public string Username { get; set; }
-    public string AuthorAvatarUrl { get; set; } 
+    public string AuthorAvatarUrl { get; set; } // <--- NOVO
     public string Content { get; set; }
     public DateTime CreatedAt { get; set; }
 }

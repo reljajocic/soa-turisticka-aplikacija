@@ -65,13 +65,13 @@
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useCartStore } from '@/stores/cart'
-import { useProfileStore } from '@/stores/profile' // <--- NOVO: Importujemo Profile Store
+import { useProfileStore } from '@/stores/profile'
 import { useRouter } from 'vue-router'
 import logo from '@/assets/travela_logo.png'
 
 const authStore = useAuthStore()
 const cartStore = useCartStore()
-const profileStore = useProfileStore() // <--- INIT
+const profileStore = useProfileStore()
 const router = useRouter()
 
 const isDropdownOpen = ref(false)
@@ -103,19 +103,18 @@ const handleClickOutside = (event) => {
 
 onMounted(async () => {
     document.addEventListener('click', handleClickOutside)
-
     if (authStore.isAuthenticated) {
         try {
             const profile = await profileStore.getMyProfile()
-            
             if (profile) {
+                // KORISTIMO 'updateUser', NE 'updateUserImage'
                 authStore.updateUser({
-                    username: profile.username, 
+                    username: profile.username,
                     avatarUrl: profile.avatarUrl
                 })
             }
         } catch (e) {
-            console.warn("Failed to sync navbar profile", e)
+            console.warn("Failed to sync navbar image", e)
         }
     }
 })
@@ -126,7 +125,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Tvoji stilovi ostaju isti, samo dodajemo overflow hidden za krug */
+/* Tvoji stilovi ostaju isti */
 .navbar { background-color: #ffffff; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000; padding: 0.5rem 0; }
 .nav-content { display: flex; justify-content: space-between; align-items: center; }
 .brand { cursor: pointer; display: flex; align-items: center; }
@@ -139,21 +138,12 @@ onUnmounted(() => {
 .login-btn { color: #cc072a; }
 .register-btn { background-color: #cc072a; color: white; }
 .register-btn:hover { background-color: #cc072a; }
-
-.circle-btn {
-  width: 40px; height: 40px; border-radius: 50%;
-  display: flex; justify-content: center; align-items: center;
-  text-decoration: none; font-weight: bold; font-size: 1.1rem;
-  transition: transform 0.2s; position: relative; border: none; cursor: pointer;
-  padding: 0;
-  overflow: hidden; 
-}
+.circle-btn { width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; text-decoration: none; font-weight: bold; font-size: 1.1rem; transition: transform 0.2s; position: relative; border: none; cursor: pointer; padding: 0; overflow: hidden; }
 .circle-btn:hover { transform: scale(1.05); }
 .cart-btn { background: #f8f9fa; border: 1px solid #ddd; color: #333; }
 .user-avatar { background: #cc072a; color: white; }
 .nav-avatar-img { width: 100%; height: 100%; object-fit: cover; }
 .badge-count { position: absolute; top: -2px; right: -2px; background: #cc072a; color: white; font-size: 0.7rem; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 110; }
-
 .user-menu-container { position: relative; }
 .dropdown-menu { position: absolute; top: 50px; right: 0; background: white; min-width: 180px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); padding: 10px 0; animation: fadeIn 0.2s ease-in-out; border: 1px solid #eee; }
 .dropdown-header { padding: 5px 15px 10px; border-bottom: 1px solid #eee; margin-bottom: 5px; }

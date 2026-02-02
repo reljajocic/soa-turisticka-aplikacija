@@ -2,43 +2,52 @@
   <div class="container">
     
     <div class="header-section">
-      <h2>Community Blogs</h2>
-      <button v-if="authStore.isAuthenticated" @click="$router.push('/create-blog')" class="btn btn-primary">
-        <i class="fa fa-pen"></i> Write a Blog
+      <h1>Community Blog</h1>
+      <button @click="$router.push('/create-blog')" class="btn-create">
+        <i class="fa fa-pen"></i> Write a Story
       </button>
     </div>
 
     <div v-if="blogStore.loading" class="text-center">Loading stories...</div>
+    
+    <div v-else-if="blogStore.blogs.length === 0" class="empty-state">
+      <div class="empty-icon"><i class="fa fa-feather-alt"></i></div>
+      <h3>No blogs yet.</h3>
+      <p>Be the first to share your adventure!</p>
+    </div>
 
-    <div v-else class="blogs-grid">
+    <div v-else class="feed">
       <div v-for="blog in blogStore.blogs" :key="blog.id" class="blog-card" @click="$router.push(`/blog/${blog.id}`)">
         
-        <div class="card-header">
-            <div class="author-avatar">
-                {{ blog.username.charAt(0).toUpperCase() }}
+        <div class="card-content">
+            
+            <div class="card-meta">
+                <div class="author-info" @click.stop="goToProfile(blog.authorId)">
+                    <img v-if="blog.authorAvatarUrl" :src="blog.authorAvatarUrl" class="tiny-avatar" />
+                    <span v-else class="tiny-avatar-placeholder">{{ blog.username.charAt(0).toUpperCase() }}</span>
+                    <span class="username">@{{ blog.username }}</span>
+                </div>
+                <span class="dot">•</span>
+                <span class="date">{{ new Date(blog.createdAt).toLocaleDateString() }}</span>
             </div>
-            <div class="author-info">
-                <span class="author-name">@{{ blog.username }}</span>
-                <span class="post-date">{{ new Date(blog.createdAt).toLocaleDateString() }}</span>
+
+            <h2 class="card-title">{{ blog.title }}</h2>
+
+            <p class="card-desc">{{ truncateText(blog.description, 150) }}</p>
+
+            <div class="card-footer">
+                <div class="chip">
+                    <i class="fa fa-comment-alt"></i> 
+                    {{ blog.comments ? blog.comments.length : 0 }} Comments
+                </div>
             </div>
         </div>
 
-        <div class="card-body">
-            <h3>{{ blog.title }}</h3>
-            <p class="description">{{ truncateText(blog.description, 120) }}</p>
-            
-            <div class="meta-footer">
-                <span class="comments-badge">
-                    <i class="fa fa-comment"></i> {{ blog.comments ? blog.comments.length : 0 }} Comments
-                </span>
-            </div>
+        <div v-if="blog.imageUrls && blog.imageUrls.length" class="card-image">
+            <img :src="blog.imageUrls[0]" alt="Blog thumbnail" />
         </div>
 
       </div>
-    </div>
-    
-    <div v-if="!blogStore.loading && blogStore.blogs.length === 0" class="empty-state">
-      <p>No blogs yet. Be the first to write one!</p>
     </div>
 
   </div>
@@ -46,65 +55,97 @@
 
 <script setup>
 import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useBlogStore } from '@/stores/blog'
-import { useAuthStore } from '@/stores/auth'
 
+const router = useRouter()
 const blogStore = useBlogStore()
-const authStore = useAuthStore()
 
 onMounted(async () => {
-    await blogStore.getAllBlogs()
+  await blogStore.getAllBlogs()
 })
 
 const truncateText = (text, length) => {
   if (!text) return ''
   return text.length > length ? text.substring(0, length) + '...' : text
 }
+
+const goToProfile = (id) => {
+    router.push(`/profile/${id}`)
+}
 </script>
 
 <style scoped>
-.header-section {
-    display: flex; justify-content: space-between; align-items: center;
-    margin: 30px 0; border-bottom: 1px solid #eee; padding-bottom: 20px;
+.container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+
+/* HEADER */
+.header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+.header-section h1 { font-size: 2rem; color: #2c3e50; margin: 0; font-weight: 800; }
+
+.btn-create { 
+    background: #cc072a; color: white; border: none; padding: 10px 24px; 
+    border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; 
+    display: flex; align-items: center; gap: 8px; font-size: 1rem;
+    box-shadow: 0 4px 6px rgba(204, 7, 42, 0.2);
 }
-.header-section h2 { margin: 0; color: #2c3e50; }
+.btn-create:hover { background: #99051f; transform: translateY(-2px); }
 
-.blogs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+/* FEED LAYOUT */
+.feed { display: flex; flex-direction: column; gap: 20px; }
 
-.blog-card {
-    background: white; border-radius: 12px; overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: transform 0.2s;
-    border: 1px solid #eee;
-    cursor: pointer;
+/* BLOG CARD - Travela Style */
+.blog-card { 
+    background: white; 
+    border: none; /* Uklonjen sivi border */
+    border-radius: 12px; /* Veći radius kao na Tours karticama */
+    padding: 20px; 
+    cursor: pointer; 
+    display: flex; 
+    justify-content: space-between;
+    gap: 25px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05); /* Soft shadow */
+    transition: transform 0.2s, box-shadow 0.2s;
 }
-.blog-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
 
-/* HEADER SA AUTOROM */
-.card-header {
-    display: flex; align-items: center; gap: 10px; padding: 15px;
-    background: #f9f9f9; border-bottom: 1px solid #eee;
+.blog-card:hover { 
+    transform: translateY(-3px); 
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1); 
 }
-.author-avatar {
-    width: 35px; height: 35px; background: #cc072a; color: white;
-    border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    font-weight: bold; font-size: 0.9rem;
+
+/* CONTENT SIDE */
+.card-content { flex: 1; display: flex; flex-direction: column; }
+
+/* Meta info */
+.card-meta { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #888; margin-bottom: 10px; }
+.author-info { display: flex; align-items: center; gap: 8px; font-weight: 600; color: #2c3e50; transition: 0.2s; }
+.author-info:hover { color: #cc072a; }
+
+.tiny-avatar { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
+.tiny-avatar-placeholder { width: 24px; height: 24px; border-radius: 50%; background: #cc072a; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; }
+
+.card-title { font-size: 1.4rem; font-weight: 700; color: #2c3e50; margin: 0 0 10px 0; line-height: 1.3; }
+.card-desc { font-size: 1rem; color: #555; margin: 0 0 15px 0; line-height: 1.6; flex-grow: 1; }
+
+.card-footer { display: flex; align-items: center; }
+.chip { 
+    background: #f8f9fa; color: #666; padding: 6px 12px; 
+    border-radius: 20px; font-size: 0.85rem; font-weight: 600; 
+    display: flex; align-items: center; gap: 6px; transition: 0.2s;
 }
-.author-info { display: flex; flex-direction: column; }
-.author-name { font-weight: 600; font-size: 0.9rem; color: #333; }
-.post-date { font-size: 0.75rem; color: #888; }
+.chip:hover { background: #eef1f3; color: #cc072a; }
 
-/* BODY */
-.card-body { padding: 20px; }
-.card-body h3 { margin: 0 0 10px 0; font-size: 1.2rem; color: #2c3e50; }
-.description { color: #555; font-size: 0.95rem; line-height: 1.5; margin-bottom: 20px; }
+/* IMAGE SIDE (Thumbnail) */
+.card-image { width: 160px; height: 120px; flex-shrink: 0; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.card-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+.blog-card:hover .card-image img { transform: scale(1.05); }
 
-.meta-footer { border-top: 1px solid #eee; padding-top: 15px; display: flex; justify-content: flex-end; }
-.comments-badge { font-size: 0.85rem; color: #777; display: flex; align-items: center; gap: 5px; }
+/* EMPTY STATE */
+.empty-state { text-align: center; margin-top: 50px; color: #777; padding: 40px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+.empty-icon { font-size: 3rem; color: #ddd; margin-bottom: 15px; }
 
-.btn-primary { 
-    background: #cc072a; color: white; border: none; padding: 10px 20px; 
-    border-radius: 20px; cursor: pointer; font-weight: 600; 
-    display: flex; align-items: center; gap: 8px;
+/* RESPONSIVE */
+@media (max-width: 650px) {
+    .blog-card { flex-direction: column-reverse; }
+    .card-image { width: 100%; height: 180px; margin-bottom: 15px; }
 }
-.btn-primary:hover { background: #99051f; }
 </style>
