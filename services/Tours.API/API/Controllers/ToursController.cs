@@ -49,9 +49,9 @@ public class ToursController : ControllerBase
     }
 
     [HttpPost("{id:guid}/status")]
-    public async Task<IActionResult> UpdateStatus(Guid id, [FromQuery] int status)
+    public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] ChangeStatusDto dto)
     {
-        await _svc.UpdateStatusAsync(id, (TourStatus)status);
+        await _svc.UpdateStatusAsync(id, (TourStatus)dto.Status, dto.Price);
         return NoContent();
     }
 

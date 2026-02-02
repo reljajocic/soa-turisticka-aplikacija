@@ -15,7 +15,8 @@ export const useAuthStore = defineStore('auth', () => {
       return {
         id: payload.sub || payload.id,
         username: payload.unique_name || payload.username || payload.sub || 'User', 
-        role: payload.role,
+        role: payload.role || payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],
+        
         avatarUrl: payload.avatarUrl || null 
       }
     } catch (e) {
@@ -78,20 +79,9 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // OVO JE JEDINI RETURN KOJI TREBA DA POSTOJI
   return { 
       user, token, isAuthenticated, isGuide, isTourist, register, login, logout, 
       updateUser
-  }
-
-  return { 
-      user, 
-      token, 
-      isAuthenticated, 
-      isGuide, 
-      isTourist, 
-      register, 
-      login, 
-      logout, 
-      updateUserImage 
   }
 })

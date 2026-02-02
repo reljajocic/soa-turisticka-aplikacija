@@ -19,7 +19,7 @@ public interface ITourService
     Task<IEnumerable<TourDto>> GetPurchasedToursAsync(Guid userId);
 
     // CRUD + Status
-    Task<bool> UpdateStatusAsync(Guid id, TourStatus status);
+    Task<bool> UpdateStatusAsync(Guid id, TourStatus status, double? price);
     Task<bool> DeleteAsync(Guid id, Guid authorId);
     Task<bool> UpdateAsync(Guid id, Guid authorId, CreateTourDto dto);
 }

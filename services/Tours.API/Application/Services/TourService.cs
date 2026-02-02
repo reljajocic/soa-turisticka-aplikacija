@@ -21,10 +21,12 @@ public class TourService : ITourService
             AuthorId = authorId,
             Name = dto.Name,
             Description = dto.Description,
+            ImageUrl = dto.ImageUrl,
             Difficulty = dto.Difficulty,
             Tags = dto.Tags ?? new List<string>(),
-            Price = (decimal)dto.Price,
-            Status = (TourStatus)dto.Status,
+            Price = 0,
+            Status = TourStatus.Draft, 
+
             Keypoints = new List<Keypoint>()
         };
 
@@ -41,7 +43,7 @@ public class TourService : ITourService
               Lat = dto.Latitude,
               Lon = dto.Longitude,
               Description = dto.Description,
-              ImageUrl = dto.Image
+              ImageUrl = dto.Image // Ovo je već postojalo, super
           });
 
         var res = await _ctx.Tours.UpdateOneAsync(t => t.Id == tourId, upd);
@@ -50,7 +52,6 @@ public class TourService : ITourService
 
     public async Task<IEnumerable<TourDto>> GetAllAsync()
     {
-        // Vraća samo OBJAVLJENE ture (za turiste)
         var tours = await _ctx.Tours.Find(t => t.Status == TourStatus.Published).ToListAsync();
         return MapToDto(tours);
     }
@@ -61,10 +62,17 @@ public class TourService : ITourService
         return MapToDto(tours);
     }
 
-    public async Task<bool> UpdateStatusAsync(Guid id, TourStatus status)
+    public async Task<bool> UpdateStatusAsync(Guid id, TourStatus status, double? price)
     {
-        var upd = Builders<Tour>.Update.Set(t => t.Status, status);
-        var res = await _ctx.Tours.UpdateOneAsync(t => t.Id == id, upd);
+        var updateDef = Builders<Tour>.Update.Set(t => t.Status, status);
+
+        // Ako je prosleđena cena (npr. kod Publish ili Archive), ažuriraj je
+        if (price.HasValue)
+        {
+            updateDef = updateDef.Set(t => t.Price, (decimal)price.Value);
+        }
+
+        var res = await _ctx.Tours.UpdateOneAsync(t => t.Id == id, updateDef);
         return res.MatchedCount > 0;
     }
 
@@ -73,10 +81,9 @@ public class TourService : ITourService
         var update = Builders<Tour>.Update
             .Set(t => t.Name, dto.Name)
             .Set(t => t.Description, dto.Description)
+            .Set(t => t.ImageUrl, dto.ImageUrl)
             .Set(t => t.Difficulty, dto.Difficulty)
-            .Set(t => t.Tags, dto.Tags ?? new List<string>())
-            .Set(t => t.Price, (decimal)dto.Price)
-            .Set(t => t.Status, (TourStatus)dto.Status);
+            .Set(t => t.Tags, dto.Tags ?? new List<string>());
 
         var res = await _ctx.Tours.UpdateOneAsync(t => t.Id == id && t.AuthorId == authorId, update);
         return res.MatchedCount > 0;
@@ -95,12 +102,13 @@ public class TourService : ITourService
             Id = t.Id,
             Name = t.Name,
             Description = t.Description ?? "",
+            ImageUrl = t.ImageUrl,
             Difficulty = t.Difficulty,
             Tags = t.Tags,
             Status = t.Status,
             Price = (double)t.Price,
             AuthorId = t.AuthorId,
-            Keypoints = t.Keypoints 
+            Keypoints = t.Keypoints
         });
     }
 
@@ -114,28 +122,22 @@ public class TourService : ITourService
             Id = t.Id,
             Name = t.Name,
             Description = t.Description ?? "",
+            ImageUrl = t.ImageUrl,
             Difficulty = t.Difficulty,
             Tags = t.Tags,
             Status = t.Status,
             Price = (double)t.Price,
             AuthorId = t.AuthorId,
-            Keypoints = t.Keypoints // Vraćamo tačke!
+            Keypoints = t.Keypoints
         };
     }
 
     public async Task<IEnumerable<TourDto>> GetPurchasedToursAsync(Guid userId)
     {
-        // 1. Nađi sve tokene za ovog korisnika
         var tokens = await _ctx.Tokens.Find(t => t.UserId == userId).ToListAsync();
-
         if (tokens.Count == 0) return new List<TourDto>();
-
-        // 2. Izdvoj ID-jeve tura
         var tourIds = tokens.Select(t => t.TourId).ToList();
-
-        // 3. Nađi te ture u bazi
         var tours = await _ctx.Tours.Find(t => tourIds.Contains(t.Id)).ToListAsync();
-
         return MapToDto(tours);
     }
 }

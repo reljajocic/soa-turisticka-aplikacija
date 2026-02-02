@@ -109,8 +109,9 @@ onMounted(async () => {
         avatarUrl: data.avatarUrl || '' 
     })
     
-    // Inicijalno ažuriraj i auth store za svaki slučaj
-    if(data.avatarUrl) authStore.updateUserImage(data.avatarUrl)
+    if(data.avatarUrl) {
+        authStore.updateUser({ avatarUrl: data.avatarUrl })
+    }
 
   } catch (err) {
     error.value = 'Failed to load profile data.'

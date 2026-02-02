@@ -60,13 +60,16 @@ export const useTourStore = defineStore('tours', {
       }
     },
 
-    // 6. Promena statusa (Draft/Publish/Archive)
-    async updateStatus(tourId, status) {
-        try {
-          await api.post(`/tours/${tourId}/status?status=${status}`)
-        } catch (error) {
-          throw error.response?.data || error.message
-        }
+    // 6. Promena statusa (Draft/Publish/Archive & Price)
+    async updateStatus(tourId, status, price = null) {
+      try {
+        await api.post(`/tours/${tourId}/status`, { 
+            status: status, 
+            price: price 
+        })
+      } catch (error) {
+        throw error.response?.data || error.message
+      }
     },
 
     // 7. Dohvati jednu turu (sa tačkama)
