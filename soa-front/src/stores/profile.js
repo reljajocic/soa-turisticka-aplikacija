@@ -20,7 +20,15 @@ export const useProfileStore = defineStore('profile', {
     async updateProfile(profileData) {
       try {
         const response = await api.put('/profile/me', profileData)
-        this.profile = response.data // Ažuriramo lokalno stanje
+        this.profile = response.data 
+        return response.data
+      } catch (error) {
+        throw error.response?.data || error.message
+      }
+    },
+    async getPublicProfile(userId) {
+      try {
+        const response = await api.get(`/profile/${userId}`)
         return response.data
       } catch (error) {
         throw error.response?.data || error.message

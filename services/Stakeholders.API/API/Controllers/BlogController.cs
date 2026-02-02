@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stakeholders.API.Application.Interfaces;
+using Stakeholders.API.Application.Services;
 using Stakeholders.API.DTOs;
 using System.Security.Claims;
 
@@ -10,34 +11,42 @@ namespace Stakeholders.API.API.Controllers;
 [Route("api/[controller]")]
 public class BlogController : ControllerBase
 {
-    private readonly IBlogService _service;
+    private readonly IBlogService _blogService;
+    private readonly IProfileService _profileService;
 
-    public BlogController(IBlogService service)
+    public BlogController(IBlogService blogService, IProfileService profileService)
     {
-        _service = service;
+        _blogService = blogService;
+        _profileService = profileService;
     }
 
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> Create(CreateBlogDto dto)
     {
-        // Tražimo ID (sub)
         var userId = Guid.Parse(User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
 
-        // POPRAVKA: Prvo tražimo "username" jer ga tako zovemo u AuthService.cs
         var username = User.FindFirst("username")?.Value
                        ?? User.FindFirst("preferred_username")?.Value
-                       ?? User.FindFirst(ClaimTypes.Name)?.Value
                        ?? "Unknown User";
 
-        var blog = await _service.CreateAsync(userId, username, dto);
+        // Dohvatamo sliku profila
+        string avatarUrl = "";
+        try
+        {
+            var profile = await _profileService.GetMeAsync(userId);
+            if (profile != null) avatarUrl = profile.AvatarUrl;
+        }
+        catch { }
+
+        var blog = await _blogService.CreateAsync(userId, username, avatarUrl, dto);
         return Ok(blog);
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var blogs = await _service.GetAllAsync();
+        var blogs = await _blogService.GetAllAsync();
         return Ok(blogs);
     }
 
@@ -45,7 +54,7 @@ public class BlogController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> Get(Guid id)
     {
-        var blog = await _service.GetAsync(id);
+        var blog = await _blogService.GetAsync(id);
         if (blog == null) return NotFound();
         return Ok(blog);
     }
@@ -55,7 +64,7 @@ public class BlogController : ControllerBase
     public async Task<IActionResult> GetMyBlogs()
     {
         var userId = Guid.Parse(User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
-        var blogs = await _service.GetMyBlogsAsync(userId);
+        var blogs = await _blogService.GetMyBlogsAsync(userId);
         return Ok(blogs);
     }
 
@@ -65,12 +74,19 @@ public class BlogController : ControllerBase
     {
         var userId = Guid.Parse(User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
 
-        // ISTA POPRAVKA I ZA KOMENTARE
         var username = User.FindFirst("username")?.Value
                        ?? User.FindFirst("preferred_username")?.Value
                        ?? "Unknown User";
 
-        await _service.AddCommentAsync(id, userId, username, dto.Content);
+        string avatarUrl = "";
+        try
+        {
+            var profile = await _profileService.GetMeAsync(userId);
+            if (profile != null) avatarUrl = profile.AvatarUrl;
+        }
+        catch { }
+
+        await _blogService.AddCommentAsync(id, userId, username, avatarUrl, dto.Content);
         return Ok();
     }
 }

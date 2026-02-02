@@ -22,6 +22,7 @@ public class BlogDto
     public Guid Id { get; set; }
     public Guid AuthorId { get; set; }
     public string Username { get; set; }
+    public string AuthorAvatarUrl { get; set; } 
     public string Title { get; set; }
     public string Description { get; set; }
     public DateTime CreatedAt { get; set; }
@@ -34,6 +35,7 @@ public class CommentDto
     public Guid Id { get; set; }
     public Guid UserId { get; set; }
     public string Username { get; set; }
+    public string AuthorAvatarUrl { get; set; } 
     public string Content { get; set; }
     public DateTime CreatedAt { get; set; }
 }

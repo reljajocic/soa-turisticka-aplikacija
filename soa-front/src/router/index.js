@@ -13,6 +13,7 @@ import ActiveTourView from '../views/ActiveTourView.vue'
 import BlogsView from '../views/BlogsView.vue'
 import CreateBlogView from '../views/CreateBlogView.vue'
 import BlogDetailsView from '../views/BlogDetailsView.vue'
+import PublicProfileView from '../views/PublicProfileView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -21,6 +22,7 @@ const router = createRouter({
     { path: '/login', name: 'login', component: LoginView },
     { path: '/register', name: 'register', component: RegisterView },
     { path: '/profile', name: 'profile', component: ProfileView, meta: {requestAuth: true}},
+    { path: '/profile/:id', name: 'public-profile', component: PublicProfileView },
     { path: '/create-tour', name: 'create-tour', component: CreateTourView, meta: { requiresAuth: true }},
     { path: '/tours', name: 'tours', component: ToursView},
     { path: '/my-tours', name: 'my-tours', component: MyToursView, meta: { requiresAuth: true }},

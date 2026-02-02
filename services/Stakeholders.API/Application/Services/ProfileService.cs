@@ -24,4 +24,9 @@ public class ProfileService : IProfileService
         var res = await _ctx.Users.UpdateOneAsync(u => u.Id == userId, update);
         return res.ModifiedCount > 0;
     }
+
+    public async Task<User?> GetProfileAsync(Guid userId)
+    {
+        return await _ctx.Users.Find(u => u.Id == userId).FirstOrDefaultAsync();
+    }
 }

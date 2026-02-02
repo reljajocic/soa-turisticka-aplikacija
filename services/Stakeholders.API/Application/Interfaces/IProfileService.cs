@@ -6,4 +6,5 @@ public interface IProfileService
 {
     Task<User?> GetMeAsync(Guid userId);
     Task<bool> UpdateProfileAsync(Guid userId, string? first, string? last, string? bio, string? motto, string? avatar);
+    Task<User?> GetProfileAsync(Guid userId);
 }

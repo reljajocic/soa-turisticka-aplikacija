@@ -4,24 +4,19 @@ import { ref, computed } from 'vue'
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref(localStorage.getItem('token') || null)
-  // Prilikom učitavanja, odmah probaj da izvučeš korisnika iz sačuvanog tokena
   const user = ref(getUserFromToken(token.value))
 
   const isAuthenticated = computed(() => !!token.value)
 
-  // Pomocna funkcija koja cita podatke iz JWT tokena
   function getUserFromToken(tokenStr) {
     if (!tokenStr) return null
     try {
-      // Dekodiranje Payload-a tokena (srednji deo tokena)
       const payload = JSON.parse(atob(tokenStr.split('.')[1]))
-      
-      // Backend obicno salje username u polju "unique_name" ili "sub" ili "username"
-      // Prilagodi ovo onome sto vidis u tokenu, ali ovo pokriva vecinu slucajeva:
       return {
         id: payload.sub || payload.id,
-        username: payload.unique_name || payload.username || payload.sub, 
-        role: payload.role // Ako backend salje rolu u tokenu
+        username: payload.unique_name || payload.username || payload.sub || 'User', 
+        role: payload.role,
+        avatarUrl: payload.avatarUrl || null 
       }
     } catch (e) {
       return null
@@ -58,11 +53,9 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.setItem('token', newToken)
       
       const userData = getUserFromToken(newToken)
-      
       if (userData && !userData.username) {
           userData.username = credentials.username
       }
-      
       user.value = userData
     } catch (error) {
       throw error
@@ -75,5 +68,30 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('token')
   }
 
-  return { user, token, isAuthenticated, isGuide, isTourist, register, login, logout }
+  function updateUser(userData) {
+    if (user.value) {
+        user.value = {
+            ...user.value,
+            username: userData.username || user.value.username,
+            avatarUrl: userData.avatarUrl || user.value.avatarUrl
+        }
+    }
+  }
+
+  return { 
+      user, token, isAuthenticated, isGuide, isTourist, register, login, logout, 
+      updateUser
+  }
+
+  return { 
+      user, 
+      token, 
+      isAuthenticated, 
+      isGuide, 
+      isTourist, 
+      register, 
+      login, 
+      logout, 
+      updateUserImage 
+  }
 })

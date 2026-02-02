@@ -49,8 +49,10 @@ public class AuthService : IAuthService
         {
             new Claim("sub", u.Id.ToString()),
             new Claim("username", u.Username),
-            new Claim("role", u.Role)
+            new Claim("role", u.Role),
+            new Claim("avatarUrl", u.AvatarUrl ?? "")
         };
+
         var jwt = new JwtSecurityToken(_cfg["Jwt:Issuer"], _cfg["Jwt:Audience"], claims,
             expires: DateTime.UtcNow.AddHours(12), signingCredentials: creds);
         return new JwtSecurityTokenHandler().WriteToken(jwt);

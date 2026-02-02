@@ -81,8 +81,10 @@
 <script setup>
 import { onMounted, ref, reactive } from 'vue'
 import { useProfileStore } from '@/stores/profile'
+import { useAuthStore } from '@/stores/auth' // <--- IMPORT AUTH STORE
 
 const profileStore = useProfileStore()
+const authStore = useAuthStore() // <--- INIT
 const loading = ref(true)
 const error = ref('')
 const successMsg = ref('')
@@ -97,18 +99,19 @@ const form = reactive({
 
 onMounted(async () => {
   try {
-    // 1. Dovuci podatke sa backenda
     const data = await profileStore.getMyProfile()
     
-    // 2. Popuni formu (Pazimo na velika/mala slova koja backend vraća)
-    // Backend verovatno vraća camelCase JSON (npr. avatarUrl, firstName...)
     Object.assign(form, {
         firstName: data.firstName || '',
         lastName: data.lastName || '',
         bio: data.bio || '',
         motto: data.motto || '',
-        avatarUrl: data.avatarUrl || '' // Ovo je ključno za sliku
+        avatarUrl: data.avatarUrl || '' 
     })
+    
+    // Inicijalno ažuriraj i auth store za svaki slučaj
+    if(data.avatarUrl) authStore.updateUserImage(data.avatarUrl)
+
   } catch (err) {
     error.value = 'Failed to load profile data.'
     console.error(err)
@@ -120,12 +123,14 @@ onMounted(async () => {
 const handleUpdate = async () => {
     successMsg.value = ''
     try {
-        // Šaljemo izmenjene podatke nazad
         await profileStore.updateProfile(form)
-        
-        // Osvežimo podatke u storu da se odmah vidi promena (npr. u headeru ako ga ima)
         await profileStore.getMyProfile()
         
+        authStore.updateUser({
+            username: form.username, 
+            avatarUrl: form.avatarUrl
+        })
+
         successMsg.value = 'Profile updated successfully!'
         setTimeout(() => successMsg.value = '', 3000)
     } catch (err) {
@@ -133,45 +138,34 @@ const handleUpdate = async () => {
     }
 }
 
-// Fallback ako link slike ne radi
 const imageLoadError = () => {
     form.avatarUrl = '' 
 }
 </script>
 
 <style scoped>
+/* Tvoji stilovi ostaju isti */
 .profile-wrapper { display: flex; justify-content: center; padding-top: 30px; padding-bottom: 50px; }
 .profile-card { width: 100%; max-width: 700px; padding: 0; overflow: hidden; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.08); background: white; }
-
-/* HEADER */
 .profile-header { background-color: white; text-align: center; padding-bottom: 30px; border-bottom: 1px solid #eee; position: relative; }
 .header-bg { height: 120px; background: linear-gradient(135deg, #cc072a, #ff4d6d); width: 100%; }
-
 .avatar-container { position: relative; width: 120px; height: 120px; margin: -60px auto 15px; }
 .avatar-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 5px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: white; }
 .avatar-placeholder { width: 100%; height: 100%; background-color: #2c3e50; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: bold; border: 5px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-
 .role-badge { position: absolute; bottom: 5px; right: 0; background: #cc072a; color: white; font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; font-weight: bold; border: 2px solid white; text-transform: uppercase; }
-
 .username { margin: 0; color: #333; font-size: 1.5rem; }
 .email { margin: 5px 0 0; color: #777; font-size: 0.95rem; }
-
-/* FORMA */
 .profile-form { padding: 30px 40px; }
 .form-row { display: flex; gap: 20px; }
 .form-row .form-group { flex: 1; }
-
 .form-group { margin-bottom: 20px; }
 .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #444; font-size: 0.9rem; }
 .form-group input, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; transition: 0.2s; font-family: inherit; box-sizing: border-box; }
 .form-group input:focus, .form-group textarea:focus { border-color: #cc072a; outline: none; box-shadow: 0 0 0 3px rgba(204, 7, 42, 0.1); }
 .hint { font-size: 0.8rem; color: #888; margin-top: 5px; display: block; }
-
-.btn-save { width: 100%; padding: 14px; font-size: 1.1rem; display: flex; justify-content: center; align-items: center; gap: 10px; background-color: #cc072a; color: white; transition: 0.2s; }
+.btn-save { width: 100%; padding: 14px; font-size: 1.1rem; display: flex; justify-content: center; align-items: center; gap: 10px; background-color: #cc072a; color: white; transition: 0.2s; cursor: pointer; border: none; border-radius: 5px; }
 .btn-save:hover { background-color: #99051f; }
-
 .success-msg { margin-top: 20px; background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; text-align: center; font-weight: 500; }
 .error-box { background: #f8d7da; color: #721c24; padding: 20px; border-radius: 8px; text-align: center; }
-
 @media (max-width: 600px) { .form-row { flex-direction: column; gap: 0; } .profile-form { padding: 20px; } }
 </style>

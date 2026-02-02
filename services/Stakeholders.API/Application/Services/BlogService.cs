@@ -1,4 +1,5 @@
-﻿using MongoDB.Driver;
+﻿using MongoDB.Bson;
+using MongoDB.Driver;
 using Stakeholders.API.Application.Interfaces;
 using Stakeholders.API.Domain.Models;
 using Stakeholders.API.DTOs;
@@ -12,13 +13,14 @@ public class BlogService : IBlogService
 
     public BlogService(MongoContext ctx) => _ctx = ctx;
 
-    public async Task<Blog> CreateAsync(Guid userId, string username, CreateBlogDto dto)
+    public async Task<Blog> CreateAsync(Guid userId, string username, string avatarUrl, CreateBlogDto dto)
     {
         var blog = new Blog
         {
             Id = Guid.NewGuid(),
             AuthorId = userId,
             Username = username,
+            AuthorAvatarUrl = avatarUrl ?? "", 
             Title = dto.Title,
             Description = dto.Description,
             ImageUrls = dto.ImageUrls ?? new List<string>(),
@@ -50,17 +52,54 @@ public class BlogService : IBlogService
         return await _ctx.Blogs.Find(b => b.Id == id).FirstOrDefaultAsync();
     }
 
-    public async Task AddCommentAsync(Guid blogId, Guid userId, string username, string content)
+    public async Task AddCommentAsync(Guid blogId, Guid userId, string username, string avatarUrl, string content)
     {
         var comment = new Comment
         {
             UserId = userId,
             Username = username,
+            AuthorAvatarUrl = avatarUrl ?? "", 
             Content = content
         };
 
-        // MongoDB atomic update: Dodajemo komentar u niz unutar bloga
         var update = Builders<Blog>.Update.Push(b => b.Comments, comment);
         await _ctx.Blogs.UpdateOneAsync(b => b.Id == blogId, update);
+    }
+
+    public async Task UpdateAuthorAvatarAsync(Guid userId, string newAvatarUrl)
+    {
+        // 1. Ažuriraj sve BLOGOVE gde je on autor
+        var updateBlog = Builders<Blog>.Update.Set(b => b.AuthorAvatarUrl, newAvatarUrl);
+        await _ctx.Blogs.UpdateManyAsync(b => b.AuthorId == userId, updateBlog);
+
+        // 2. Ažuriraj sve KOMENTARE gde je on autor (Ovo je malo teže u Mongo-u jer su ugnježdeni)
+        //    Koristimo "arrayFilters" da nađemo tačne komentare
+        var filter = Builders<Blog>.Filter.ElemMatch(b => b.Comments, c => c.UserId == userId);
+        var updateComment = Builders<Blog>.Update.Set("Comments.$[elem].AuthorAvatarUrl", newAvatarUrl);
+        var arrayFilters = new List<ArrayFilterDefinition>
+    {
+        new BsonDocumentArrayFilterDefinition<BsonDocument>(new BsonDocument("elem.UserId", userId.ToString())) // Pazi na tip UserId-a!
+        // U Mongo drajveru Guid se nekad čuva kao BinData. Ako ovo ne radi, javi pa ćemo uprostiti.
+    };
+
+        // Pojednostavljena verzija za komentare (ako arrayFilters zeza):
+        // Učitaj sve blogove gde je komentarisao i ručno promeni (manje efikasno, ali sigurnije za sad)
+        var blogsWithComments = await _ctx.Blogs.Find(b => b.Comments.Any(c => c.UserId == userId)).ToListAsync();
+        foreach (var blog in blogsWithComments)
+        {
+            bool changed = false;
+            foreach (var c in blog.Comments)
+            {
+                if (c.UserId == userId)
+                {
+                    c.AuthorAvatarUrl = newAvatarUrl;
+                    changed = true;
+                }
+            }
+            if (changed)
+            {
+                await _ctx.Blogs.ReplaceOneAsync(b => b.Id == blog.Id, blog);
+            }
+        }
     }
 }
