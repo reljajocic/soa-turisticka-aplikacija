@@ -55,19 +55,17 @@ public class ExecutionService : IExecutionService
             var p = await _ctx.Positions.Find(x => x.UserId == userId).FirstOrDefaultAsync();
             if (p is null) return new { error = "GPS Position not found. Use Simulator!" };
 
-            // Ažuriramo LastActivity pri svakom zahtevu (Specifikacija: "Bez obzira na ishod, beleži se last activity")
             var baseUpdate = Builders<TourExecution>.Update.Set(x => x.LastActivity, DateTime.UtcNow);
 
             if (e.ProgressIndex >= tour.Keypoints.Count)
             {
                 await _ctx.Executions.UpdateOneAsync(x => x.Id == e.Id, baseUpdate);
-                return new { reached = false, progress = tour.Keypoints.Count, distanceKm = 0, message = "Tour already completed." };
+                return new { reached = false, progress = tour.Keypoints.Count, distanceKm = 0, message = "Tour already completed.", arrivalTimes = e.KeypointArrivalTimes };
             }
 
             var target = tour.Keypoints[e.ProgressIndex];
             var dist = Geo.Haversine(p.Lat, p.Lon, target.Lat, target.Lon);
 
-            // Provera blizine (< 50m)
             if (dist < 0.05)
             {
                 var arrivalTime = DateTime.UtcNow;
@@ -77,19 +75,17 @@ public class ExecutionService : IExecutionService
                     .Set(x => x.ProgressIndex, newIdx)
                     .Push(x => x.KeypointArrivalTimes, arrivalTime);
 
-                // Ako je ovo bila poslednja tačka, automatski možemo markirati kao završeno
                 if (newIdx == tour.Keypoints.Count)
                 {
                     update = update.Set(x => x.Status, "Completed").Set(x => x.FinishedAt, arrivalTime);
                 }
 
                 await _ctx.Executions.UpdateOneAsync(x => x.Id == e.Id, update);
-                return new { reached = true, progress = newIdx, distanceKm = 0, completed = newIdx == tour.Keypoints.Count };
+                return new { reached = true, progress = newIdx, distanceKm = 0, completed = newIdx == tour.Keypoints.Count, arrivalTimes = e.KeypointArrivalTimes };
             }
 
-            // Samo ažuriraj LastActivity ako nije blizu
             await _ctx.Executions.UpdateOneAsync(x => x.Id == e.Id, baseUpdate);
-            return new { reached = false, progress = e.ProgressIndex, distanceKm = dist };
+            return new { reached = false, progress = e.ProgressIndex, distanceKm = dist, arrivalTimes = e.KeypointArrivalTimes };
         }
         catch (Exception ex)
         {
@@ -110,5 +106,10 @@ public class ExecutionService : IExecutionService
           .Set(x => x.LastActivity, DateTime.UtcNow);
 
         await _ctx.Executions.UpdateOneAsync(x => x.Id == dto.ExecutionId && x.UserId == userId, upd);
+    }
+
+    public async Task<List<TourExecution>> GetUserExecutionsAsync(Guid userId)
+    {
+        return await _ctx.Executions.Find(x => x.UserId == userId).ToListAsync();
     }
 }

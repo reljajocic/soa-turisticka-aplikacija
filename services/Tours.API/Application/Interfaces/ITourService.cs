@@ -15,6 +15,7 @@ public interface ITourService
     Task<IEnumerable<TourDto>> GetByAuthorAsync(Guid authorId);
     Task<TourDto?> GetAsync(Guid id);
 
+
     // Dobavljanje kupljenih tura
     Task<IEnumerable<TourDto>> GetPurchasedToursAsync(Guid userId);
 

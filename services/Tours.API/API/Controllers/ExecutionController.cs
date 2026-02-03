@@ -40,4 +40,15 @@ public class ExecutionController : ControllerBase
         await _svc.FinishAsync(Guid.Parse(sub), dto);
         return NoContent();
     }
+
+    [HttpGet("user")]
+    public async Task<IActionResult> GetUserExecutions()
+    {
+        var sub = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (sub is null) return Unauthorized();
+
+        // We assume you add GetUserExecutionsAsync to your IExecutionService
+        var list = await _svc.GetUserExecutionsAsync(Guid.Parse(sub));
+        return Ok(list);
+    }
 }

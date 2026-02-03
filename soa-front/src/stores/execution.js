@@ -4,11 +4,11 @@ import api from '@/services/api'
 export const useExecutionStore = defineStore('execution', {
   state: () => ({
     activeSessionId: null,
+    executions: [], 
     loading: false
   }),
 
   actions: {
-    // Pokretanje ture
     async startTour(tourId) {
       try {
         const res = await api.post('/execution/start', { tourId })
@@ -19,10 +19,8 @@ export const useExecutionStore = defineStore('execution', {
       }
     },
 
-    // Periodično proveravanje pozicije (Tačka 17)
     async pollPosition(executionId) {
       try {
-        // Šaljemo PollDto: { ExecutionId: "..." }
         const res = await api.post('/execution/poll', { executionId })
         return res.data 
       } catch (error) {
@@ -31,7 +29,6 @@ export const useExecutionStore = defineStore('execution', {
       }
     },
 
-    // Završavanje ture (Success/Abandoned)
     async finishTour(executionId, success) {
       try {
         await api.post('/execution/finish', { executionId, success })
@@ -41,7 +38,17 @@ export const useExecutionStore = defineStore('execution', {
       }
     },
 
-    // Pomoćna funkcija za proveru kupljenih tura
+    async getUserExecutions() {
+      try {
+        const res = await api.get('/execution/user')
+        this.executions = res.data
+        return res.data
+      } catch (error) {
+        console.error("Error fetching executions:", error)
+        throw error
+      }
+    },
+
     async getPurchasedTours() {
       try {
         const response = await api.get('/tours/purchased')

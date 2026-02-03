@@ -137,7 +137,7 @@ const progressPercent = computed(() => {
 })
 
 const distanceDisplay = computed(() => {
-    if(distanceKm.value === null) return "Calculating..."
+    if(distanceKm.value === null || distanceKm.value === undefined) return "Calculating..."
     if(distanceKm.value < 1) return (distanceKm.value * 1000).toFixed(0) + " m"
     return distanceKm.value.toFixed(2) + " km"
 })
