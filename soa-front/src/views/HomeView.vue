@@ -35,22 +35,49 @@
       <div v-if="loading" class="text-center">Loading recommendations...</div>
 
       <div v-else class="tours-grid">
-        <div v-for="tour in featuredTours" :key="tour.id" class="tour-card">
-          <div class="card-header" :class="'diff-' + tour.difficulty">
-            <span class="difficulty-badge">Level {{ tour.difficulty }}</span>
-          </div>
+  <div v-for="tour in featuredTours" :key="tour.id" class="tour-card" @click="$router.push(`/tour/${tour.id}`)">
+    
+    <div class="card-bg" :style="{ backgroundImage: `url(${tour.imageUrl || 'https://via.placeholder.com/400x300?text=No+Image'})` }">
+        
+        <div class="overlay"></div>
 
-          <div class="card-body">
-            <h3>{{ tour.name }}</h3>
-            <p class="price">${{ tour.price }}</p>
-            <p class="description">{{ truncateText(tour.description, 60) }}</p>
-            
-            <button @click="$router.push(`/tour/${tour.id}`)" class="btn-details">
-              View Details
-            </button>
-          </div>
+        <div class="card-top">
+            <span class="level-badge" :class="'diff-' + tour.difficulty">
+                Level {{ tour.difficulty }}
+            </span>
+
+            <div class="status-badge">
+                <span v-if="isPurchased(tour.id)" class="owned-tag">
+                    <i class="fa fa-check-circle"></i> OWNED
+                </span>
+                <span v-else class="price-tag">
+                    ${{ tour.price }}
+                </span>
+            </div>
         </div>
-      </div>
+
+        <div class="card-bottom">
+            <h3 class="tour-title">{{ tour.name }}</h3>
+            
+            <div class="bottom-row">
+                <div class="tags" v-if="tour.tags">
+                    <span v-for="tag in tour.tags.slice(0,2)" :key="tag" class="tag-pill">#{{ tag }}</span>
+                </div>
+
+                <button 
+                    v-if="authStore.isTourist() && !isPurchased(tour.id)" 
+                    @click.stop="addToCart(tour)" 
+                    class="btn-cart-mini" 
+                    title="Add to Cart"
+                >
+                    <i class="fa fa-shopping-cart"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+  </div>
+</div>
       
       <div class="view-all-wrapper">
           <button @click="$router.push('/tours')" class="btn-view-all">View All Tours</button>
@@ -63,15 +90,19 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useTourStore } from '@/stores/tours'
+import { useCartStore } from '@/stores/cart'
+import { useAuthStore } from '@/stores/auth'
 
 const tourStore = useTourStore()
+const cartStore = useCartStore()
+const authStore = useAuthStore()
+
 const tours = ref([])
+const purchasedTourIds = ref(new Set())
 const loading = ref(true)
 const currentSlide = ref(0)
 let slideInterval = null
 
-// --- PODACI ZA SLAJDER ---
-// Koristim Unsplash slike kao placeholder
 const slides = [
     {
         image: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop',
@@ -97,16 +128,22 @@ const featuredTours = computed(() => {
 
 // --- LIFECYCLE ---
 onMounted(async () => {
-    // 1. Pokreni slajder
     startSlideTimer()
     
-    // 2. Učitaj ture
     try {
-        // Ako već nisu učitane u store-u, povuci ih
         if (tourStore.tours.length === 0) {
             await tourStore.getAllTours()
         }
         tours.value = tourStore.tours
+
+        if (authStore.isTourist()) {
+            try {
+                const purchased = await tourStore.getPurchasedTours()
+                purchased.forEach(t => purchasedTourIds.value.add(t.id))
+            } catch (e) {
+                console.log("Error checking purchases", e)
+            }
+        }
     } catch (e) {
         console.error(e)
     } finally {
@@ -118,7 +155,8 @@ onUnmounted(() => {
     stopSlideTimer()
 })
 
-// --- LOGIKA SLAJDERA ---
+
+
 const startSlideTimer = () => {
     slideInterval = setInterval(() => {
         currentSlide.value = (currentSlide.value + 1) % slides.length
@@ -129,10 +167,17 @@ const stopSlideTimer = () => {
     if (slideInterval) clearInterval(slideInterval)
 }
 
-// --- HELPER ---
 const truncateText = (text, length) => {
   if (!text) return ''
   return text.length > length ? text.substring(0, length) + '...' : text
+}
+
+const isPurchased = (tourId) => {
+    return purchasedTourIds.value.has(tourId)
+}
+
+const addToCart = async (tour) => {
+    await cartStore.addToCart(tour)
 }
 </script>
 
@@ -143,7 +188,7 @@ const truncateText = (text, length) => {
 .hero-section {
     position: relative;
     width: 100%;
-    height: 80vh; /* Zauzima 80% visine ekrana */
+    height: 80vh; 
     overflow: hidden;
     color: white;
 }
@@ -225,41 +270,85 @@ const truncateText = (text, length) => {
     gap: 30px; 
 }
 
-.tour-card {
-    background: white; border-radius: 12px; overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.08); transition: 0.3s;
-    display: flex; flex-direction: column;
+.tour-card { 
+    height: 380px; 
+    border-radius: 16px; 
+    overflow: hidden; 
+    cursor: pointer; 
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1); 
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;
+    background: #000;
 }
-.tour-card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.15); }
+.tour-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
 
-.card-header { height: 120px; background: #ddd; position: relative; }
-.diff-1 { background: #cc072a; } 
-.diff-2 { background: #cc072a; } 
-.diff-3 { background: #a80622; } 
-.diff-4 { background: #85051b; } 
-.diff-5 { background: #610313; } 
+.card-bg {
+    width: 100%; height: 100%;
+    background-size: cover; background-position: center;
+    position: relative; transition: transform 0.5s;
+}
+.tour-card:hover .card-bg { transform: scale(1.05); }
 
-.difficulty-badge {
-    position: absolute; bottom: 10px; right: 10px;
-    background: rgba(0,0,0,0.7); color: white; padding: 4px 10px;
-    border-radius: 12px; font-size: 0.8rem; font-weight: bold;
+.overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.9) 100%);
+    z-index: 1;
 }
 
-.card-body { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; text-align: center; }
-.card-body h3 { font-size: 1.2rem; margin-bottom: 5px; color: #333; }
-.price { color: #cc072a; font-weight: 800; font-size: 1.3rem; margin-bottom: 10px; }
-.description { font-size: 0.9rem; color: #666; margin-bottom: 20px; flex-grow: 1; }
-
-.btn-details {
-    padding: 10px 20px; border: 2px solid #cc072a; color: #cc072a; background: transparent;
-    border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s;
+.card-top {
+    position: absolute; top: 15px; left: 15px; right: 15px;
+    display: flex; justify-content: space-between; z-index: 2;
 }
-.btn-details:hover { background: #cc072a; color: white; }
 
-.view-all-wrapper { text-align: center; margin-top: 50px; }
+.level-badge {
+    padding: 5px 12px; border-radius: 20px; 
+    color: white; font-weight: bold; font-size: 0.85rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3); text-transform: uppercase;
+}
+/* Boje težine */
+.diff-1 { background: #2ecc71; } 
+.diff-2 { background: #f1c40f; color: #333; } 
+.diff-3 { background: #e67e22; } 
+.diff-4 { background: #e74c3c; } 
+.diff-5 { background: #8e44ad; } 
+
+.price-tag {
+    background: white; color: #333; 
+    padding: 5px 12px; border-radius: 8px; 
+    font-weight: 800; font-size: 1rem; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+.owned-tag {
+    background: #27ae60; color: white; padding: 5px 12px; border-radius: 8px;
+    font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 5px;
+}
+
+.card-bottom {
+    position: absolute; bottom: 20px; left: 20px; right: 20px; z-index: 2; text-align: left;
+}
+
+.tour-title {
+    color: white; margin: 0 0 10px 0; font-size: 1.6rem; font-weight: 800;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.bottom-row { display: flex; justify-content: space-between; align-items: center; }
+.tag-pill { color: #ddd; font-size: 0.85rem; font-weight: 500; margin-right: 8px; }
+
+.btn-cart-mini {
+    background: #cc072a; color: white; border: none; width: 36px; height: 36px;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: 0.2s;
+}
+.btn-cart-mini:hover { transform: scale(1.1); background: #a50522; }
 .btn-view-all {
     padding: 12px 30px; background: #2c3e50; color: white; border: none;
     border-radius: 6px; font-size: 1rem; cursor: pointer; transition: 0.2s;
 }
 .btn-view-all:hover { background: #1a252f; }
+.view-all-wrapper {
+    margin: 60px 0 20px 0;
+    display: flex;
+    justify-content: center;
+}
+
 </style>
