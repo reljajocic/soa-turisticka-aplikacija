@@ -36,9 +36,7 @@
 
         <hr />
         
-        <div class="blog-body">
-            <p v-for="(paragraph, index) in formattedBody" :key="index">{{ paragraph }}</p>
-        </div>
+        <div class="blog-body markdown" v-html="renderedDescription"></div>
         
         <hr />
 
@@ -90,11 +88,14 @@
 </template>
 
 <script setup>
-import { onMounted, ref, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useBlogStore } from '@/stores/blog'
-import { useAuthStore } from '@/stores/auth'
-import { useFollowStore } from '@/stores/follow'
+import { onMounted, ref, computed } from "vue"
+import { useRoute, useRouter } from "vue-router"
+import { useBlogStore } from "@/stores/blog"
+import { useAuthStore } from "@/stores/auth"
+import { useFollowStore } from "@/stores/follow"
+
+import MarkdownIt from "markdown-it"
+import DOMPurify from "dompurify"
 
 const route = useRoute()
 const router = useRouter()
@@ -103,45 +104,54 @@ const authStore = useAuthStore()
 const followStore = useFollowStore()
 
 const blog = ref(null)
-const newComment = ref('')
+const newComment = ref("")
 const isFollowingAuthor = ref(false)
 
+// Markdown parser (ne dozvoljavamo raw HTML iz user inputa)
+const md = new MarkdownIt({
+  html: false,
+  linkify: true,
+  breaks: true
+})
+
 onMounted(async () => {
-    const id = route.params.id
-    try {
-        blog.value = await blogStore.getBlog(id)
-        if (authStore.isAuthenticated && authStore.user.id !== blog.value.authorId) {
-            isFollowingAuthor.value = await followStore.isFollowing(blog.value.authorId)
-        }
-    } catch (e) {
-        console.error("Failed to load data", e)
+  const id = route.params.id
+  try {
+    blog.value = await blogStore.getBlog(id)
+    if (authStore.isAuthenticated && authStore.user.id !== blog.value.authorId) {
+      isFollowingAuthor.value = await followStore.isFollowing(blog.value.authorId)
     }
+  } catch (e) {
+    console.error("Failed to load data", e)
+  }
 })
 
 const canComment = computed(() => {
-    if (!authStore.isAuthenticated) return false;
-    if (authStore.user.id === blog.value?.authorId) return true;
-    return isFollowingAuthor.value;
+  if (!authStore.isAuthenticated) return false
+  if (authStore.user.id === blog.value?.authorId) return true
+  return isFollowingAuthor.value
 })
 
-const formattedBody = computed(() => {
-    if (!blog.value?.description) return []
-    return blog.value.description.split('\n')
+// ✅ Markdown -> HTML (sanitized) za prikaz u detaljima bloga
+const renderedDescription = computed(() => {
+  const raw = blog.value?.description || ""
+  const html = md.render(raw)
+  return DOMPurify.sanitize(html)
 })
 
 const postComment = async () => {
-    if (!newComment.value.trim()) return
-    try {
-        await blogStore.addComment(blog.value.id, newComment.value)
-        blog.value = await blogStore.getBlog(blog.value.id)
-        newComment.value = ''
-    } catch (e) {
-        alert("Failed to post comment")
-    }
+  if (!newComment.value.trim()) return
+  try {
+    await blogStore.addComment(blog.value.id, newComment.value)
+    blog.value = await blogStore.getBlog(blog.value.id)
+    newComment.value = ""
+  } catch (e) {
+    alert("Failed to post comment")
+  }
 }
 
 const goToProfile = (userId) => {
-    router.push(`/profile/${userId}`)
+  router.push(`/profile/${userId}`)
 }
 </script>
 
@@ -192,4 +202,21 @@ const goToProfile = (userId) => {
 .small-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .comment-date { font-size: 0.8rem; color: #999; }
 .login-msg { background: #f0f2f5; padding: 20px; text-align: center; border-radius: 8px; }
+
+.markdown :deep(h1) { font-size: 2rem; margin: 1rem 0 0.6rem; }
+.markdown :deep(h2) { font-size: 1.6rem; margin: 1rem 0 0.6rem; }
+.markdown :deep(h3) { font-size: 1.3rem; margin: 0.8rem 0 0.5rem; }
+
+.markdown :deep(p) { margin: 0.6rem 0; line-height: 1.7; color: #444; }
+
+.markdown :deep(ul),
+.markdown :deep(ol) { margin: 0.6rem 0; padding-left: 1.4rem; }
+
+.markdown :deep(a) { color: #cc072a; text-decoration: underline; }
+
+.markdown :deep(blockquote) {
+  border-left: 4px solid #cc072a;
+  padding-left: 12px;
+  color: #666;
+  margin: 0.8rem 0;}
 </style>

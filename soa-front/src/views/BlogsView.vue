@@ -33,7 +33,10 @@
 
             <h2 class="card-title">{{ blog.title }}</h2>
 
-            <p class="card-desc">{{ truncateText(blog.description, 150) }}</p>
+            <p class="card-desc">
+              {{ truncateText(markdownToText(blog.description), 150) }}
+            </p>
+
 
             <div class="card-footer">
                 <div class="chip">
@@ -58,12 +61,32 @@ import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useBlogStore } from '@/stores/blog'
 
+import MarkdownIt from 'markdown-it'
+import DOMPurify from 'dompurify'
+
 const router = useRouter()
 const blogStore = useBlogStore()
+
+const md = new MarkdownIt({
+  html: false,
+  linkify: true,
+  breaks: true
+})
 
 onMounted(async () => {
   await blogStore.getAllBlogs()
 })
+
+const markdownToText = (markdown) => {
+  if (!markdown) return ''
+
+  const html = md.render(markdown)
+  const safe = DOMPurify.sanitize(html)
+
+  const temp = document.createElement('div')
+  temp.innerHTML = safe
+  return (temp.textContent || temp.innerText || '').trim()
+}
 
 const truncateText = (text, length) => {
   if (!text) return ''
@@ -71,9 +94,10 @@ const truncateText = (text, length) => {
 }
 
 const goToProfile = (id) => {
-    router.push(`/profile/${id}`)
+  router.push(`/profile/${id}`)
 }
 </script>
+
 
 <style scoped>
 .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
